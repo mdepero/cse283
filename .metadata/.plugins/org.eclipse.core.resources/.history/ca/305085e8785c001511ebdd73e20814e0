@@ -1,0 +1,90 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+
+public class Question_02_Client {
+
+	static DatagramSocket myUDPSocket;
+	static int port;
+	static String hostString, message;
+	static byte[] byteData;
+	static InetAddress host;
+
+	// handle getting the date and time
+	static Date currentDate;
+	static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+	static Scanner keyboardInput = new Scanner(System.in);
+
+	public static void getInfo() {
+
+		do {
+
+			System.out.print("What host do you want to use? ");
+			hostString = keyboardInput.nextLine();
+
+		} while (hostString == "");
+
+		do {
+
+			System.out.print("What port do you want to use? ");
+			port = keyboardInput.nextInt();
+
+		} while (port <= 0);
+
+		message = Long.toString(currentDate.getTime());
+
+		currentDate = new Date();
+
+	}
+
+	public static void sendPacket() throws IOException {
+
+		myUDPSocket = new DatagramSocket(port);
+
+		while (true) {
+
+			byteData = message.getBytes();
+
+			host = InetAddress.getByName(hostString);
+
+			DatagramPacket outgoingMessage = new DatagramPacket(byteData,
+					byteData.length, host, port);
+
+			myUDPSocket.send(outgoingMessage);
+			
+			byte[] buffer = new byte[1000];
+			DatagramPacket incomingMessage = new DatagramPacket(buffer, buffer.length);
+			myUDPSocket.receive(incomingMessage);
+			System.out.println("Time Difference: " + new String(incomingMessage.getData()));
+
+		}
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		getInfo();
+
+		try {
+			sendPacket();
+
+		} catch (IOException e) {
+
+			System.err.println(e.getMessage());
+
+		} finally {
+
+			myUDPSocket.close();
+		}
+
+	}
+
+}

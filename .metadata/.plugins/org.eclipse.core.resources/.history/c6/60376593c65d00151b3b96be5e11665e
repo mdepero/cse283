@@ -1,0 +1,68 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.Scanner;
+
+public class Question_01_Client {
+
+	static DatagramSocket socket;
+
+	static String messageString, hostString, portString;
+
+	static Scanner keyboardInput = new Scanner(System.in);
+
+	public static void getInfo() {
+
+		System.out.print("Enter Host Name: ");
+		hostString = keyboardInput.nextLine();
+
+		System.out.print("Enter Port Number: ");
+		portString = keyboardInput.nextLine();
+
+		System.out.print("Enter Message to Send: ");
+		messageString = keyboardInput.nextLine();
+	}
+
+	public static void sendMessage() {
+
+		try {
+			
+			// set up socket connection
+			socket = new DatagramSocket();
+			InetAddress host = InetAddress.getByName(hostString);
+			int serverPort = Integer.valueOf(portString).intValue();
+			
+			// set up packet and send it
+			DatagramPacket packet = new DatagramPacket(
+					messageString.getBytes(), messageString.length(), host,
+					serverPort);	
+			socket.send(packet);
+			
+			// set up reply packet
+			byte[] buffer = new byte[1000];
+			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+			
+			// retrieve and print reply
+			socket.receive(reply);
+			System.out.println("Server Replied: " + new String(reply.getData()));
+			
+		} catch (Exception e) {
+			
+			System.out.println("An Error Occured - " + e.getMessage());
+			
+		}  finally {
+			if (socket != null)
+				socket.close();
+		}
+	}
+
+	public static void main(String args[]) {
+
+		getInfo();
+
+		sendMessage();
+
+	}
+}

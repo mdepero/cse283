@@ -1,0 +1,82 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+
+public class Question_02_Server {
+
+	static DatagramSocket myUDPSocket;
+	static int port, bufferSize;
+	static byte[] buffer;
+
+	// handle getting the date and time
+	static Date currentDate;
+	static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+	static Scanner keyboardInput = new Scanner(System.in);
+
+	public static void getInfo() {
+
+		port = 99;
+
+		bufferSize = 1000;
+
+		currentDate = new Date();
+
+	}
+
+	public static void startServer() throws IOException {
+
+		myUDPSocket = new DatagramSocket(port);
+
+		buffer = new byte[bufferSize];
+
+		while (true) {
+
+			DatagramPacket incomingMessage = new DatagramPacket(buffer,
+					bufferSize);
+			myUDPSocket.receive(incomingMessage);
+
+			System.out.println(new String(incomingMessage.getData()));
+			
+			long timeDifference = currentDate.getTime();// - clientTime;// - clientTime;
+			
+			String timeDifferenceString = Long.toString(timeDifference);
+			
+			byte[] replyData = timeDifferenceString.getBytes();//Long.toString(timeDifference).getBytes();
+			
+			DatagramPacket outgoingMessage = new DatagramPacket(replyData,
+					replyData.length, incomingMessage.getAddress(),
+					incomingMessage.getPort());
+
+			myUDPSocket.send(outgoingMessage);
+
+		}
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		getInfo();
+
+		try {
+			startServer();
+
+		} catch (IOException e) {
+
+			System.err.println(e.getMessage());
+
+		} finally {
+
+			myUDPSocket.close();
+		}
+
+	}
+
+}
