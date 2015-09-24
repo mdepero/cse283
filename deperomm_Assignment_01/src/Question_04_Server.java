@@ -94,9 +94,11 @@ public class Question_04_Server {
 	 */
 	private void runServer() {
 
-		new ClientServer().run();
+		ClientServer clientServer = new ClientServer();
+		clientServer.start();
 
-		new ManagerServer().run();
+		ManagerServer managerServer = new ManagerServer();
+		managerServer.start();
 
 	}// end runserver
 
@@ -104,9 +106,12 @@ public class Question_04_Server {
 
 		public ClientServer() {
 
+			
 		}
 
 		public void run() {
+			
+			System.out.println("Started Client Server Socket.");
 
 			while (serverIsOn) {
 
@@ -154,13 +159,16 @@ public class Question_04_Server {
 
 	}
 
-	public class ManagerServer extends Thread {
+	public class ManagerServer extends Thread implements Runnable {
 
 		public ManagerServer() {
-
+			
+			
 		}
 
 		public void run() {
+			
+			System.out.println("Started Manager Server Socket.\n");
 
 			while (serverIsOn) {
 
@@ -177,14 +185,14 @@ public class Question_04_Server {
 
 					threadID++;
 
-//					ClientThread singleClientThread = new ClientThread(
-//							socketToClient, threadID);
-//					singleClientThread.start();
+					// ClientThread singleClientThread = new ClientThread(
+					// socketToClient, threadID);
+					// singleClientThread.start();
 
 					// send the manager thread a link to it's client thread
 
 					ManagerThread singleManagerThread = new ManagerThread(
-					managerSocket, threadID);
+							managerSocket, threadID);
 					singleManagerThread.start();
 
 				} catch (IOException ioe) {
@@ -196,8 +204,8 @@ public class Question_04_Server {
 			}
 
 			try {
-				serverSocket.close();
-				// managerServerSocket.close();
+				// serverSocket.close();
+				managerServerSocket.close();
 				System.out.println("Server Stopped");
 			} catch (Exception ioe) {
 				System.out.println("Problem stopping server");
@@ -341,9 +349,11 @@ public class Question_04_Server {
 							} else {
 								int guess = Integer.parseInt(clientMessage);
 								messageToSend = String
-										.format("That's not it,  the number is %s than that.",
+										.format("That's not it,  the number is %s than that. You have %d of %d guesses remaining.",
 												(num > guess) ? "greater"
-														: "less");
+														: "less",
+												maxGuessesAllowed - numGuesses,
+												maxGuessesAllowed);
 							}
 						}
 
@@ -412,7 +422,6 @@ public class Question_04_Server {
 	 */
 	public class ManagerThread extends Thread {
 
-
 		// thread variables
 		Socket managerSocket;
 		int threadID;
@@ -428,10 +437,7 @@ public class Question_04_Server {
 		 * @param threadID
 		 *            The unique ID for this thread on the server
 		 */
-		public ManagerThread( Socket managerSocket,
-				int threadID) {
-
-
+		public ManagerThread(Socket managerSocket, int threadID) {
 
 			this.managerSocket = managerSocket;
 
@@ -500,6 +506,13 @@ public class Question_04_Server {
 
 						messageToSend = "Quitting process due to stop message: "
 								+ clientMessage;
+
+					} else if (clientMessage
+							.matches("Hi Server, I'm a Manager")) {
+
+						// client sent handshake
+
+						messageToSend = "Hello Manager, welcome.";
 
 					} else if (clientMessage.matches("^\\d+$")) {
 
