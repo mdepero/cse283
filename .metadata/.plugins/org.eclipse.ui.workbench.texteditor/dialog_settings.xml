@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item value="294" key="DIALOG_WIDTH"/>
-		<item value="217" key="DIALOG_Y_ORIGIN"/>
-		<item value="333" key="DIALOG_X_ORIGIN"/>
+		<item value="296" key="DIALOG_WIDTH"/>
+		<item value="213" key="DIALOG_Y_ORIGIN"/>
+		<item value="1196" key="DIALOG_X_ORIGIN"/>
 		<item value="429" key="DIALOG_HEIGHT"/>
 		<item value="1|Noto Sans|9.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
@@ -13,13 +13,19 @@
 		<item value="false" key="isRegEx"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="host" key="selection"/>
+		<item value="server was" key="selection"/>
 		<list key="findhistory">
-			<item value="aHost"/>
-			<item value="aSocket"/>
-			<item value="connectionSocket"/>
+			<item value="server was"/>
+			<item value="num ="/>
+			<item value="Question_03"/>
+			<item value="starting "/>
+			<item value="starting thread"/>
+			<item value="starting threat"/>
+			<item value="starting"/>
+			<item value="you gues"/>
 		</list>
 		<list key="replacehistory">
+			<item value="port"/>
 			<item value="host"/>
 			<item value="socket"/>
 			<item value="serverSocket"/>

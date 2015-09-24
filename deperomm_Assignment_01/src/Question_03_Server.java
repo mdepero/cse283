@@ -5,10 +5,21 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Random;
+import java.util.Scanner;
 
+/**
+ * Matt DePero CSE283 B Dr. Jianhui Yue
+ * 
+ * @author deperomm
+ * 
+ *         This class acts as a TCP server with multi-threading for each
+ *         connection made to it. Upon connection, it generates a random range
+ *         of number and an random number that the has to try and guess
+ * 
+ * 
+ */
 public class Question_03_Server {
-
-	int SERVER_PORT = 11111;
 
 	// Socket variables
 	ServerSocket serverSocket;
@@ -18,6 +29,12 @@ public class Question_03_Server {
 	// Thread variables
 	int threadID;
 
+	// used for random number generation
+	Random rand = new Random();
+
+	/**
+	 * Constructor that initializes and runs the server
+	 */
 	public Question_03_Server() {
 
 		getServerInfo();
@@ -26,28 +43,42 @@ public class Question_03_Server {
 
 		runServer();
 
-	}
+	}// end constructor
 
+	/**
+	 * prompts user for info for the server
+	 */
 	private void getServerInfo() {
+		Scanner input = new Scanner(System.in);
 
-		port = SERVER_PORT;
-	}
+		System.out.print("What port would you like to use? ");
+		port = Integer.parseInt(input.nextLine());
 
+		input.close();
+
+	}// end getServerInfo
+
+	/**
+	 * sets up the server with the info
+	 */
 	private void setUpServer() {
 
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException ioe) {
 			System.out.println("Could not create server socket on port " + port
-					+ ". Quitting.");
+					+ ". "+ioe.getMessage());
 
 			System.exit(-1);
 		}
 
 		serverIsOn = true;
 
-	}
+	}// end setupserver
 
+	/**
+	 * Runs the server. Creates a new thread for each subsequent connection
+	 */
 	private void runServer() {
 
 		while (serverIsOn) {
@@ -74,18 +105,37 @@ public class Question_03_Server {
 			serverSocket.close();
 			System.out.println("Server Stopped");
 		} catch (Exception ioe) {
-			System.out.println("Problem stopping server socket");
+			System.out.println("Problem stopping server");
 			System.exit(-1);
 		}
 
-	}
+	}// end runserver
 
+	/**
+	 * An inner class for running each thread for each connection
+	 * 
+	 * @author matt
+	 * 
+	 */
 	public class ClientThread extends Thread {
 
+		// thread variables
 		Socket clientSocket;
 		int threadID;
 		boolean threadRunning;
 
+		// game variables
+		int min, max, num, numGuesses;
+		int maxGuessesAllowed = 5;
+
+		/**
+		 * Constructor for the socket thread.
+		 * 
+		 * @param clientSocket
+		 *            The socket that connects this thread to the client
+		 * @param threadID
+		 *            The unique ID for this thread on the server
+		 */
 		public ClientThread(Socket clientSocket, int threadID) {
 
 			this.clientSocket = clientSocket;
@@ -94,8 +144,11 @@ public class Question_03_Server {
 
 			threadRunning = false;
 
-		}
+		}// end constructor
 
+		/**
+		 * starts the thread process and loops until completed
+		 */
 		public void run() {
 
 			threadRunning = true;
@@ -109,43 +162,104 @@ public class Question_03_Server {
 
 			try {
 
+				// set up input output buffers for the client
 				inputFromClient = new BufferedReader(new InputStreamReader(
 						clientSocket.getInputStream()));
 
 				outputToClient = new PrintWriter(new OutputStreamWriter(
 						clientSocket.getOutputStream()));
 
+				// run the thread
 				while (threadRunning) {
 
+					// read in message from client
 					String clientMessage = inputFromClient.readLine();
-					System.out.println("threadID " + threadID
-							+ "  Client Says :" + clientMessage);
+					System.out.println("Thread " + threadID + " Said: "
+							+ clientMessage);
 
+					// check that the upper level server wasn't stopped while
+					// running the thread
 					if (!serverIsOn) {
 						// The server was stopped. Quit this thread
 						System.out.print("Ending thread " + threadID
 								+ ", server was stopped.");
-						outputToClient.println("Server was stopped");
+						outputToClient.println("Sorry, the server was stopped");
 						outputToClient.flush();
 						threadRunning = false;
 
 					}
 
-					// if(clientMessage.equalsIgnoreCase("quit")) {
-					//
-					//
-					// }
+					// based on the message received, create the message to
+					// return
+
+					// messageToSend will be sent to the client and printed on
+					// the server console
+					String messageToSend;
+
 					if (clientMessage.equalsIgnoreCase("quit")) {
+
 						threadRunning = false;
-						System.out.print("sessionID " + threadID
-								+ "  Stopping client thread for client : ");
-						outputToClient.println("Quitting Process : " + clientMessage);
-						outputToClient.flush();
+
+						messageToSend = "Quitting process due to stop message: "
+								+ clientMessage;
+
+					} else if (clientMessage
+							.equalsIgnoreCase("Hi Server, let's play a game.")) {
+
+						// creates a random range of numbers
+						min = rand.nextInt(100);
+
+						max = rand.nextInt(500 - min) + min;
+
+						num = rand.nextInt(max - min) + min;
+
+						System.out.println("Thread " + threadID
+								+ " Number to Guess is: " + num);
+
+						messageToSend = "Ok, let's play. Guess a number between "
+								+ min + " and " + max + " (inclusive)";
+
+					} else if (clientMessage.matches("^\\d+$")) {
+						// client sent a number, check guess
+
+						if (Integer.parseInt(clientMessage) == num) {
+
+							messageToSend = "You guessed it! The game is done.";
+							threadRunning = false;
+
+						} else {
+
+							if (numGuesses + 1 >= maxGuessesAllowed) {
+
+								messageToSend = "Sorry, that was your last guess. You lose, the numbe was "+num+". The game is done.";
+								threadRunning = false;
+
+							} else {
+								numGuesses++;
+								int guess = Integer.parseInt(clientMessage);
+								messageToSend = String
+										.format("That's not it,  the number is %s than that.",
+												(num > guess) ? "greater"
+														: "less");
+							}
+						}
+
+					} else {
+
+						// all other input mark as invalid
+						messageToSend = "Invalid input, try again.";
+
 					}
-					outputToClient.println("Server Says : " + clientMessage);
+
+					// send the actual reply to the server and console
+					outputToClient.println(messageToSend);
 					outputToClient.flush();
+					System.out.println("Thread " + threadID + " Sent: "
+							+ messageToSend);
 
 				}
+
+				// handle exceptions
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -154,7 +268,7 @@ public class Question_03_Server {
 					inputFromClient.close();
 					outputToClient.close();
 					clientSocket.close();
-					System.out.println("Stopped client");
+					System.out.println("Stopped thread " + threadID);
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
 				}
@@ -165,12 +279,14 @@ public class Question_03_Server {
 	}// end inner class ClientThread
 
 	/**
+	 * main method initializes the server
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
 
 		new Question_03_Server();
 
-	}
+	}// end main
 
-}
+}// end class
