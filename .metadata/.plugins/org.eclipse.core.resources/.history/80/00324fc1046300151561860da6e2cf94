@@ -67,7 +67,7 @@ public class Question_03_Server {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException ioe) {
 			System.out.println("Could not create server socket on port " + port
-					+ ". " + ioe.getMessage());
+					+ ". "+ioe.getMessage());
 
 			System.exit(-1);
 		}
@@ -231,8 +231,7 @@ public class Question_03_Server {
 
 							if (numGuesses + 1 >= maxGuessesAllowed) {
 
-								messageToSend = "Sorry, that was your last guess. You lose, the number was "
-										+ num + ". The game is done.";
+								messageToSend = "Sorry, that was your last guess. You lose, the numbe was "+num+". The game is done.";
 								threadRunning = false;
 
 							} else {

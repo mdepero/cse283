@@ -338,10 +338,8 @@ public class Question_04_Server {
 	 */
 	public class ManagerThread extends Thread {
 
-		// the reference to the client thread so that it can control and read data
-		ClientThread clientThread;
-		
 		// thread variables
+		ClientThread clientThread;
 		Socket managerSocket;
 		int threadID;
 		boolean threadRunning;
