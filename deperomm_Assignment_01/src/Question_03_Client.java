@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class Question_03_Client {
 
 	private static String hostName;
-	private static int port = 11111;
+	private static int port;
 
 	// a scanner for reading in user input
 	private static Scanner input = new Scanner(System.in);
