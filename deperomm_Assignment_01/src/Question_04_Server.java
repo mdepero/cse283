@@ -102,13 +102,26 @@ public class Question_04_Server {
 
 	}// end runserver
 
+	/**
+	 * A thread that continuously listens for client connections
+	 * starts a new client thread upon a connection
+	 * 
+	 * @author matt
+	 *
+	 */
 	public class ClientServer extends Thread {
 
+		/**
+		 * empty constructor
+		 */
 		public ClientServer() {
 
 			
-		}
+		}// end constructor
 
+		/**
+		 * run method that implements the runnable interface
+		 */
 		public void run() {
 			
 			System.out.println("Started Client Server Socket.");
@@ -155,17 +168,29 @@ public class Question_04_Server {
 				System.exit(-1);
 			}
 
-		}
+		}// end run
 
-	}
+	}// end client server
 
+	/**
+	 * A thread that actively listens for connections to the manager client
+	 * makes a new manager thread upon connection
+	 * @author matt
+	 *
+	 */
 	public class ManagerServer extends Thread implements Runnable {
 
+		/**
+		 * empty constructor
+		 */
 		public ManagerServer() {
 			
 			
-		}
+		}// end constructor
 
+		/**
+		 * run methods implements the runnable interface
+		 */
 		public void run() {
 			
 			System.out.println("Started Manager Server Socket.\n");
@@ -212,9 +237,9 @@ public class Question_04_Server {
 				System.exit(-1);
 			}
 
-		}
+		}// end run 
 
-	}
+	}// end manager server
 
 	/**
 	 * An inner class for running each thread for each connection

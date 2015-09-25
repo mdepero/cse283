@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
-	<section name="SaveAsDialogSettings">
-		<item value="525" key="DIALOG_WIDTH"/>
-		<item value="105" key="DIALOG_Y_ORIGIN"/>
-		<item value="597" key="DIALOG_HEIGHT"/>
-		<item value="699" key="DIALOG_X_ORIGIN"/>
-		<item value="1|Noto Sans|9.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+	<section name="ExternalProjectImportWizard">
+		<item value="false" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
+		<item value="false" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
 	</section>
 </section>
