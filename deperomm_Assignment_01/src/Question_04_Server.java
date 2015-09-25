@@ -24,6 +24,12 @@ import java.util.Scanner;
  */
 public class Question_04_Server {
 
+	// server wide variable for max number of guesses
+	int maxGuessesAllowed = 5;
+
+	// server wide variables for keeping track of guesses
+	int numRightGuesses = 0, numTotalGuesses = 0;
+
 	// Socket variables
 	ServerSocket serverSocket, managerServerSocket;
 	boolean serverIsOn;
@@ -88,48 +94,127 @@ public class Question_04_Server {
 	 */
 	private void runServer() {
 
-		while (serverIsOn) {
+		ClientServer clientServer = new ClientServer();
+		clientServer.start();
+
+		ManagerServer managerServer = new ManagerServer();
+		managerServer.start();
+
+	}// end runserver
+
+	public class ClientServer extends Thread {
+
+		public ClientServer() {
+
+			
+		}
+
+		public void run() {
+			
+			System.out.println("Started Client Server Socket.");
+
+			while (serverIsOn) {
+
+				try {
+
+					// the client sends the client first, then the manager
+					// request
+
+					Socket socketToClient = serverSocket.accept();
+
+					// Socket managerSocket = managerServerSocket.accept();
+
+					// once both connections established, start both threads
+
+					threadID++;
+
+					ClientThread singleClientThread = new ClientThread(
+							socketToClient, threadID);
+					singleClientThread.start();
+
+					// send the manager thread a link to it's client thread
+
+					// ManagerThread singleManagerThread = new ManagerThread(
+					// singleClientThread, managerSocket, threadID);
+					// singleManagerThread.start();
+
+				} catch (IOException ioe) {
+					System.out
+							.println("Exception encountered on accept. Ignoring. Stack Trace :");
+					ioe.printStackTrace();
+				}
+
+			}
 
 			try {
-
-				// the client sends the client first, then the manager request
-
-				Socket socketToClient = serverSocket.accept();
-
-				Socket managerSocket = managerServerSocket.accept();
-
-				// once both connections established, start both threads
-
-				threadID++;
-
-				ClientThread singleClientThread = new ClientThread(
-						socketToClient, threadID);
-				singleClientThread.start();
-
-				// send the manager thread a link to it's client thread
-
-				ManagerThread singleManagerThread = new ManagerThread(
-						singleClientThread, managerSocket, threadID);
-				singleManagerThread.start();
-
-			} catch (IOException ioe) {
-				System.out
-						.println("Exception encountered on accept. Ignoring. Stack Trace :");
-				ioe.printStackTrace();
+				serverSocket.close();
+				// managerServerSocket.close();
+				System.out.println("Server Stopped");
+			} catch (Exception ioe) {
+				System.out.println("Problem stopping server");
+				System.exit(-1);
 			}
 
 		}
 
-		try {
-			serverSocket.close();
-			managerServerSocket.close();
-			System.out.println("Server Stopped");
-		} catch (Exception ioe) {
-			System.out.println("Problem stopping server");
-			System.exit(-1);
+	}
+
+	public class ManagerServer extends Thread implements Runnable {
+
+		public ManagerServer() {
+			
+			
 		}
 
-	}// end runserver
+		public void run() {
+			
+			System.out.println("Started Manager Server Socket.\n");
+
+			while (serverIsOn) {
+
+				try {
+
+					// the client sends the client first, then the manager
+					// request
+
+					// Socket socketToClient = serverSocket.accept();
+
+					Socket managerSocket = managerServerSocket.accept();
+
+					// once both connections established, start both threads
+
+					threadID++;
+
+					// ClientThread singleClientThread = new ClientThread(
+					// socketToClient, threadID);
+					// singleClientThread.start();
+
+					// send the manager thread a link to it's client thread
+
+					ManagerThread singleManagerThread = new ManagerThread(
+							managerSocket, threadID);
+					singleManagerThread.start();
+
+				} catch (IOException ioe) {
+					System.out
+							.println("Exception encountered on accept. Ignoring. Stack Trace :");
+					ioe.printStackTrace();
+				}
+
+			}
+
+			try {
+				// serverSocket.close();
+				managerServerSocket.close();
+				System.out.println("Server Stopped");
+			} catch (Exception ioe) {
+				System.out.println("Problem stopping server");
+				System.exit(-1);
+			}
+
+		}
+
+	}
 
 	/**
 	 * An inner class for running each thread for each connection
@@ -145,8 +230,7 @@ public class Question_04_Server {
 		boolean threadRunning;
 
 		// game variables
-		int min, max, num, numGuesses, numRightGuesses, numTotalGuesses;
-		int maxGuessesAllowed = 5;
+		int min, max, num, numGuesses;
 
 		/**
 		 * Constructor for the socket thread.
@@ -165,8 +249,6 @@ public class Question_04_Server {
 			threadRunning = false;
 
 			numGuesses = 0;
-			numTotalGuesses = 0;
-			numRightGuesses = 0;
 
 		}// end constructor
 
@@ -267,9 +349,11 @@ public class Question_04_Server {
 							} else {
 								int guess = Integer.parseInt(clientMessage);
 								messageToSend = String
-										.format("That's not it,  the number is %s than that.",
+										.format("That's not it,  the number is %s than that. You have %d of %d guesses remaining.",
 												(num > guess) ? "greater"
-														: "less");
+														: "less",
+												maxGuessesAllowed - numGuesses,
+												maxGuessesAllowed);
 							}
 						}
 
@@ -338,9 +422,6 @@ public class Question_04_Server {
 	 */
 	public class ManagerThread extends Thread {
 
-		// the reference to the client thread so that it can control and read data
-		ClientThread clientThread;
-		
 		// thread variables
 		Socket managerSocket;
 		int threadID;
@@ -356,10 +437,7 @@ public class Question_04_Server {
 		 * @param threadID
 		 *            The unique ID for this thread on the server
 		 */
-		public ManagerThread(ClientThread clientThread, Socket managerSocket,
-				int threadID) {
-
-			this.clientThread = clientThread;
+		public ManagerThread(Socket managerSocket, int threadID) {
 
 			this.managerSocket = managerSocket;
 
@@ -402,7 +480,7 @@ public class Question_04_Server {
 
 					// check that the upper level server wasn't stopped while
 					// running the thread, or that client was stopped
-					if (!serverIsOn || !clientThread.threadRunning) {
+					if (!serverIsOn) {
 
 						// The server was stopped. Quit this thread
 						System.out.print("Ending manager thread " + threadID
@@ -426,18 +504,22 @@ public class Question_04_Server {
 
 						threadRunning = false;
 
-						clientThread.threadRunning = false;
-
 						messageToSend = "Quitting process due to stop message: "
 								+ clientMessage;
+
+					} else if (clientMessage
+							.matches("Hi Server, I'm a Manager")) {
+
+						// client sent handshake
+
+						messageToSend = "Hello Manager, welcome.";
 
 					} else if (clientMessage.matches("^\\d+$")) {
 
 						// client manager sent a number, adjust max possible
 						// guesses
 
-						clientThread.maxGuessesAllowed = Integer
-								.parseInt(clientMessage);
+						maxGuessesAllowed = Integer.parseInt(clientMessage);
 
 						messageToSend = "Changed max number of guesses to "
 								+ Integer.parseInt(clientMessage);
@@ -448,9 +530,8 @@ public class Question_04_Server {
 						// client manger wants the success rate on this channel
 
 						messageToSend = String.format(
-								"Success rate on this channel is %.3f", 1.0
-										* clientThread.numRightGuesses
-										/ clientThread.numTotalGuesses);
+								"Success rate on this server is %.3f", 1.0
+										* numRightGuesses / numTotalGuesses);
 
 					} else {
 
